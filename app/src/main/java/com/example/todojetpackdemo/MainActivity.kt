@@ -36,31 +36,17 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
-import androidx.room.Room
 import com.example.todojetpackdemo.ui.theme.TodoJetpackDemoTheme
+import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 import kotlin.math.roundToInt
 
+
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
-    private val db by lazy{
-        Room.databaseBuilder(
-            applicationContext,
-            TodoItemDatabase::class.java,
-            "todo.db"
-        ).build()
-    }
 
-    private val viewModel by viewModels<MainActivityViewModel>(
-        factoryProducer = {
-            object : ViewModelProvider.Factory{
-                override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                    return MainActivityViewModel(db.dao) as T
-                }
-            }
-        }
-    )
+    private val mainViewModel: MainActivityViewModel by viewModels()
     @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
 
@@ -73,10 +59,10 @@ class MainActivity : ComponentActivity() {
                         .padding(16.dp)
                 ) {
                     Row() {
-                        OutlinedTextField(value = viewModel.todoItem, onValueChange = { viewModel.todoItem = it })
+                        OutlinedTextField(value = mainViewModel.todoItem, onValueChange = { mainViewModel.todoItem = it })
                         IconButton(
                             onClick = {
-                                viewModel.addItemResetInput()
+                                mainViewModel.addItemResetInput()
                             },
                         ) {
                             Icon(
@@ -87,11 +73,11 @@ class MainActivity : ComponentActivity() {
                             )
                         }
                     }
-                    val todoItems by viewModel.todoItems.collectAsState()
+                    val todoItems by mainViewModel.todoItems.collectAsState()
                     LazyColumn {
                         items(todoItems){
                             TodoItemView(what = it.item ) {
-                                viewModel.delete(it)
+                                mainViewModel.delete(it)
                             }
                         }
                     }
