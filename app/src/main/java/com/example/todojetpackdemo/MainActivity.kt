@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -25,6 +26,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -34,12 +36,31 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
+import androidx.room.Room
 import com.example.todojetpackdemo.ui.theme.TodoJetpackDemoTheme
 import kotlin.math.roundToInt
 
 class MainActivity : ComponentActivity() {
 
-    private val viewModel by viewModels<MainActivityViewModel>()
+    private val db by lazy{
+        Room.databaseBuilder(
+            applicationContext,
+            TodoItemDatabase::class.java,
+            "todo.db"
+        ).build()
+    }
+
+    private val viewModel by viewModels<MainActivityViewModel>(
+        factoryProducer = {
+            object : ViewModelProvider.Factory{
+                override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                    return MainActivityViewModel(db.dao) as T
+                }
+            }
+        }
+    )
     @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
 
@@ -66,10 +87,11 @@ class MainActivity : ComponentActivity() {
                             )
                         }
                     }
+                    val todoItems by viewModel.todoItems.collectAsState()
                     LazyColumn {
-                        items(viewModel.todoItems.size) { index ->
-                            TodoItemView(what = viewModel.todoItems[index]) {
-                                viewModel.todoItems.removeAt(index)
+                        items(todoItems){
+                            TodoItemView(what = it.item ) {
+                                viewModel.delete(it)
                             }
                         }
                     }
