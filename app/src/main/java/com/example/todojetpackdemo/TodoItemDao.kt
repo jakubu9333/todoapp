@@ -5,7 +5,6 @@ import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.Query
 import kotlinx.coroutines.flow.Flow
-import javax.inject.Singleton
 
 
 @Dao
@@ -18,6 +17,6 @@ interface TodoItemDao {
    @Delete
    suspend  fun deleteTodoItem(todoItem: TodoItem)
 
-   @Query("Select * from  TodoItem  Order By addAt ASC")
+   @Query("Select * from  TodoItem  Order By addAt DESC")
    fun getTodoItems(): Flow<List<TodoItem>>
 }
